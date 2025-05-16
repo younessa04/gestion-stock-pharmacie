@@ -179,8 +179,11 @@
                 
                 <div class="sidebar-menu">
                     <a href="#" class="active"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
-                    <a href="#"><i class="fas fa-pills"></i> Médicaments</a>
-                    <a href="#"><i class="fas fa-boxes"></i> Stock</a>
+					<!-- Dans votre fichier sidebar/menu (ex: sidebar.jsp) -->
+					<a href="${pageContext.request.contextPath}/produits" class="nav-link">
+					  <i class="fas fa-pills"></i> Médicaments
+					</a>                    
+					<a href="#"><i class="fas fa-boxes"></i> Stock</a>
                     <a href="#"><i class="fas fa-users"></i> Clients</a>
                     <a href="#"><i class="fas fa-file-invoice-dollar"></i> Ventes</a>
                     <a href="#"><i class="fas fa-chart-line"></i> Rapports</a>
@@ -278,3 +281,4 @@
     </script>
 </body>
 </html>
+

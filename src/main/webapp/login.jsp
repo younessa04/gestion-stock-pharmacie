@@ -1,3 +1,4 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -29,6 +30,12 @@
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 86, 179, 0.2);
             border-top: 5px solid var(--pharma-blue);
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .pharma-logo {
@@ -52,6 +59,7 @@
             padding: 12px 15px;
             margin-bottom: 1.5rem;
             border: 1px solid #ddd;
+            transition: all 0.3s;
         }
         
         .form-control:focus {
@@ -75,13 +83,12 @@
             transform: translateY(-2px);
         }
         
-        .error-message {
-            background-color: #ffe6e6;
-            border-left: 4px solid #dc3545;
-            padding: 10px;
-            border-radius: 4px;
-            margin-top: 1rem;
-            display: ${empty erreur ? 'none' : 'block'};
+        .alert-message {
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
         }
         
         .footer-text {
@@ -89,6 +96,19 @@
             margin-top: 1.5rem;
             color: #6c757d;
             font-size: 0.9rem;
+        }
+        
+        .password-toggle {
+            cursor: pointer;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+        
+        .input-group {
+            position: relative;
         }
     </style>
 </head>
@@ -98,8 +118,22 @@
             <div class="pharma-logo">
                 <i class="fas fa-prescription-bottle-alt"></i>
                 <h2>PHARMA<span style="color: var(--pharma-green);">CARE</span></h2>
-                <p class="text-muted">Syst�me de gestion pharmaceutique</p>
+                <p class="text-muted">Système de gestion pharmaceutique</p>
             </div>
+            
+            <%-- Message de déconnexion réussie --%>
+            <% if ("true".equals(request.getParameter("logout"))) { %>
+                <div class="alert alert-success alert-message">
+                    <i class="fas fa-check-circle me-2"></i> Vous avez été déconnecté avec succès.
+                </div>
+            <% } %>
+            
+            <%-- Message d'erreur de connexion --%>
+            <% if (request.getAttribute("erreur") != null) { %>
+                <div class="alert alert-danger alert-message">
+                    <i class="fas fa-exclamation-circle me-2"></i> ${erreur}
+                </div>
+            <% } %>
             
             <form action="login" method="post">
                 <div class="mb-3">
@@ -112,23 +146,20 @@
                 
                 <div class="mb-3">
                     <label for="motdepasse" class="form-label">Mot de passe</label>
-                    <div class="input-group">
+                    <div class="input-group" style="position: relative;">
                         <span class="input-group-text"><i class="fas fa-lock"></i></span>
                         <input type="password" class="form-control" id="motdepasse" name="motdepasse" placeholder="Entrez votre mot de passe" required>
+                        <i class="fas fa-eye password-toggle" onclick="togglePassword()"></i>
                     </div>
                 </div>
                 
                 <button type="submit" class="btn btn-pharma">
                     <i class="fas fa-sign-in-alt"></i> Se connecter
                 </button>
-                
-                <div class="error-message">
-                    <i class="fas fa-exclamation-circle"></i> ${erreur}
-                </div>
             </form>
             
             <div class="footer-text">
-                <p>� 2023 PharmaCare. Tous droits r�serv�s.</p>
+                <p>© 2023 PharmaCare. Tous droits réservés.</p>
                 <p><a href="#" style="color: var(--pharma-blue); text-decoration: none;"><i class="fas fa-question-circle"></i> Aide</a></p>
             </div>
         </div>
@@ -136,12 +167,32 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Masquer le message d'erreur s'il est vide
-        document.addEventListener('DOMContentLoaded', function() {
-            const errorMessage = document.querySelector('.error-message');
-            if (errorMessage.textContent.trim() === '') {
-                errorMessage.style.display = 'none';
+        // Fonction pour basculer la visibilité du mot de passe
+        function togglePassword() {
+            const passwordField = document.getElementById('motdepasse');
+            const toggleIcon = document.querySelector('.password-toggle');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleIcon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                toggleIcon.classList.replace('fa-eye-slash', 'fa-eye');
             }
+        }
+        
+        // Animation pour les messages d'alerte
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert-message');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    alert.style.transition = 'all 0.3s ease-out';
+                    alert.style.opacity = '1';
+                    alert.style.transform = 'translateY(0)';
+                }, 100);
+            });
         });
     </script>
 </body>
