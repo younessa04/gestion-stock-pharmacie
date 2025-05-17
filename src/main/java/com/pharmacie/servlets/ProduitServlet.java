@@ -9,6 +9,7 @@ import javax.servlet.http.*;
 import javax.servlet.annotation.*;
 import java.io.IOException;
 import java.sql.Date;
+import java.sql.SQLException;
 import java.util.List;
 
 @WebServlet(name = "ProduitServlet", urlPatterns = {"/produits"})
@@ -21,23 +22,48 @@ public class ProduitServlet extends HttpServlet {
             throws ServletException, IOException {
         
         try {
-            // Chargement systématique des fournisseurs
+            // Chargement systématique des fournisseurs (utilisé pour les formulaires)
             List<Fournisseur> fournisseurs = fournisseurDAO.getAllFournisseurs();
             request.setAttribute("fournisseurs", fournisseurs);
 
             String action = request.getParameter("action");
             
-            if ("edit".equals(action)) {
-                handleEditRequest(request, response);
-            } else if ("add".equals(action)) {
-                handleAddRequest(request, response);
-            } else if ("delete".equals(action)) {
-                handleDeleteRequest(request, response);
-            } else {
+            if (action == null || action.isEmpty()) {
+                // Action par défaut si aucun paramètre
                 handleListRequest(request, response);
+                return;
             }
+
+            switch (action) {
+                case "edit":
+                    handleEditRequest(request, response);
+                    break;
+                    
+                case "add":
+                    handleAddRequest(request, response);
+                    break;
+                    
+                case "delete":
+                    handleDeleteRequest(request, response);
+                    break;
+                    
+                case "search":
+                    handleSearchRequest(request, response);
+                    break;
+                    
+                default:
+                    handleListRequest(request, response);
+                    break;
+            }
+            
+        } catch (NumberFormatException e) {
+            handleError(request, response, "ID invalide : " + e.getMessage(), e);
+            
+        } catch (SQLException e) {
+            handleError(request, response, "Erreur base de données : " + e.getMessage(), e);
+            
         } catch (Exception e) {
-            handleError(request, response, "Erreur lors du chargement: " + e.getMessage(), e);
+            handleError(request, response, "Erreur inattendue : " + e.getMessage(), e);
         }
     }
 
@@ -63,21 +89,44 @@ public class ProduitServlet extends HttpServlet {
             throws ServletException, IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         Produit produit = produitDAO.getProduitById(id);
+        
         request.setAttribute("produit", produit);
+        request.setAttribute("mode", "edit"); // Ajoutez ce flag
         request.getRequestDispatcher("/editMedicament.jsp").forward(request, response);
     }
 
     private void handleAddRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.setAttribute("produit", new Produit());
+        // Crée un nouveau produit vide
+        Produit nouveauProduit = new Produit();
+        nouveauProduit.setDateExpiration(new Date(System.currentTimeMillis())); // Date du jour par défaut
+        
+        request.setAttribute("produit", nouveauProduit);
+        request.setAttribute("mode", "add"); // Ajoutez ce flag
         request.getRequestDispatcher("/editMedicament.jsp").forward(request, response);
     }
 
     private void handleDeleteRequest(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
+            throws ServletException, IOException {
         int id = Integer.parseInt(request.getParameter("id"));
-        produitDAO.deleteProduit(id);
-        response.sendRedirect("produits");
+        
+        try {
+            if (produitDAO.deleteProduit(id)) {
+                // Ajoutez ceci pour forcer le rafraîchissement
+                response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+                response.setHeader("Pragma", "no-cache");
+                response.setHeader("Expires", "0");
+                
+                // Redirection avec paramètre de succès
+                response.sendRedirect(request.getContextPath() + "/produits?deleted=true");
+            } else {
+                request.setAttribute("error", "La suppression a échoué.");
+                handleListRequest(request, response);
+            }
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
+            handleListRequest(request, response);
+        }
     }
 
     private void handleListRequest(HttpServletRequest request, HttpServletResponse response)
@@ -123,4 +172,27 @@ public class ProduitServlet extends HttpServlet {
         
         request.getRequestDispatcher("/editMedicament.jsp").forward(request, response);
     }
+    
+ // Méthodes supplémentaires à ajouter à votre servlet
+    private void handleSearchRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException, SQLException {
+        String searchTerm = request.getParameter("searchTerm");
+        
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            request.setAttribute("warning", "Veuillez entrer un terme de recherche");
+            handleListRequest(request, response);
+            return;
+        }
+        
+        List<Produit> produits = produitDAO.searchProduits(searchTerm);
+        request.setAttribute("produits", produits);
+        request.setAttribute("searchTerm", searchTerm); // Pour pré-remplir le champ
+        
+        request.getRequestDispatcher("/medicament.jsp").forward(request, response);
+    }
+    
+    
+    
+    
+    
 }

@@ -2,30 +2,30 @@ package com.pharmacie.util;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 
 public class ConnectDb {
 
-    private final String url = "jdbc:postgresql://aws-0-eu-west-2.pooler.supabase.com:6543/postgres";
-    private final String username = "postgres.wndhyfijfzqqcoqeypev";
-    private final String password = "Pharmacy1234@#YM2";
+    private static final String URL = "jdbc:postgresql://aws-0-eu-west-2.pooler.supabase.com:6543/postgres";
+    private static final String USERNAME = "postgres.wndhyfijfzqqcoqeypev";
+    private static final String PASSWORD = "Pharmacy1234@#YM2";
 
-    private static Connection connection;
-
-    private ConnectDb() {
+    static {
         try {
             Class.forName("org.postgresql.Driver");
-            connection = DriverManager.getConnection(url, username, password);
-            System.out.println("✅ Connexion réussie !");
-        } catch (Exception e) {
-            System.out.println("❌ Erreur de connexion à la base de données");
+        } catch (ClassNotFoundException e) {
+            System.err.println("❌ Pilote PostgreSQL introuvable !");
             e.printStackTrace();
         }
     }
 
     public static Connection getConnection() {
-        if (connection == null) {
-            new ConnectDb();
+        try {
+            return DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        } catch (SQLException e) {
+            System.err.println("❌ Échec de la connexion à la base de données");
+            e.printStackTrace();
+            return null;
         }
-        return connection;
     }
 }
