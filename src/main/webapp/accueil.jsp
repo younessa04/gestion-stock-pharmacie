@@ -1,3 +1,5 @@
+
+
 <%@ page session="true" %>
 <%
     String nom = (String) session.getAttribute("utilisateur");
@@ -6,7 +8,19 @@
         return;
     }
 %>
-
+<!-- En haut de votre JSP -->
+<%@page import="java.util.List,com.pharmacie.entities.StockAlert" %>
+<%
+    List<StockAlert> testAlerts = (List<StockAlert>) request.getAttribute("activeAlerts");
+    if (testAlerts != null) {
+        System.out.println("Nombre d'alertes reçues : " + testAlerts.size());
+        for (StockAlert a : testAlerts) {
+            System.out.println("Alerte: " + a.getProduitNom() + " - " + a.getMessage());
+        }
+    } else {
+        System.out.println("Aucune alerte reçue dans la JSP");
+    }
+%>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -193,6 +207,62 @@
             
             <!-- Main Content -->
             <div class="col-md-9 col-lg-10 main-content">
+            
+            
+            	<!-- Section Alertes - Version améliorée -->
+<c:if test="${not empty activeAlerts}">
+    <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-exclamation-triangle me-2"></i> 
+                Alertes de Stock <span class="badge bg-danger ms-2">${activeAlerts.size()}</span>
+            </h5>
+            <div>
+                <a href="stock-report?type=faible" class="btn btn-sm btn-outline-dark me-2">
+                    <i class="fas fa-list"></i> Voir détails
+                </a>
+                <button class="btn btn-sm btn-dark" data-bs-toggle="collapse" data-bs-target="#alertCollapse">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="collapse show" id="alertCollapse">
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <c:forEach items="${activeAlerts}" var="alert">
+                        <div class="list-group-item list-group-item-action ${alert.alertType == 'RUPTURE' ? 'list-group-item-danger' : 'list-group-item-warning'}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <i class="fas ${alert.alertType == 'RUPTURE' ? 'fa-times-circle' : 'fa-exclamation-circle'} me-2"></i>
+                                        ${alert.produitNom}
+                                    </h6>
+                                    <small>${alert.message}</small>
+                                </div>
+                                <small class="text-muted">
+                                    <fmt:formatDate value="${alert.alertDate}" pattern="dd/MM HH:mm"/>
+                                </small>
+                            </div>
+                        </div>
+                    </c:forEach>
+                </div>
+            </div>
+            
+            <div class="card-footer bg-light d-flex justify-content-between">
+                <small class="text-muted">
+                    Dernière mise à jour : <fmt:formatDate value="${now}" pattern="dd/MM/yyyy HH:mm:ss"/>
+                </small>
+                <form action="stock-report" method="post" class="d-inline">
+                    <input type="hidden" name="action" value="send-alerts">
+                    <button type="submit" class="btn btn-sm btn-success">
+                        <i class="fas fa-paper-plane me-1"></i> Envoyer par email
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</c:if>
                 <div class="welcome-card">
                     <div class="welcome-icon">
                         <i class="fas fa-hand-holding-medical"></i>
@@ -279,6 +349,41 @@
             });
         });
     </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // Actualise les alertes toutes les 5 minutes
+            function refreshAlerts() {
+                fetch('stock-report?action=check-alerts')
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.text();
+                    })
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const newAlerts = doc.querySelector('.alert-container');
+                        if (newAlerts) {
+                            const currentAlerts = document.querySelector('.alert-container');
+                            if (currentAlerts) {
+                                currentAlerts.replaceWith(newAlerts);
+                            } else {
+                                document.querySelector('.main-content').prepend(newAlerts);
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Error refreshing alerts:', error));
+            }
+
+            // Démarrer l'actualisation périodique
+            setInterval(refreshAlerts, 300000); // 5 minutes
+            
+            // Actualiser aussi au chargement de la page
+            document.addEventListener('DOMContentLoaded', refreshAlerts);
+        </script>
+    
+    
+    
 </body>
 </html>
 

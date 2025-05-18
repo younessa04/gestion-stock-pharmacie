@@ -1,5 +1,3 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page session="true" %>
 <%
     String nom = (String) session.getAttribute("utilisateur");
@@ -8,6 +6,9 @@
         return;
     }
 %>
+
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <!DOCTYPE html>
 <html>
@@ -116,26 +117,30 @@
             background-color: var(--pharma-light-blue) !important;
         }
         
-        
-        
         /* Style pour la barre de recherche */
-.input-group {
-    width: 300px;
-    margin-right: 20px;
-}
+        .input-group {
+            width: 300px;
+            margin-right: 20px;
+        }
 
-.input-group input {
-    border-right: none;
-}
+        .input-group input {
+            border-right: none;
+        }
 
-.input-group .btn {
-    border-left: none;
-    background-color: white;
-}
+        .input-group .btn {
+            border-left: none;
+            background-color: white;
+        }
 
-.input-group .btn:hover {
-    background-color: var(--pharma-light-blue);
-}
+        .input-group .btn:hover {
+            background-color: var(--pharma-light-blue);
+        }
+        
+        /* Style pour les boutons de la navbar */
+        .navbar-buttons {
+            display: flex;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
@@ -162,54 +167,62 @@
             </div>
         </form>
         
-        <a href="logout" class="btn btn-outline-danger">
-            <i class="fas fa-sign-out-alt"></i> Déconnexion
-        </a>
-    </div>
-</nav>
-    <div class="container mt-5">
-        <div class="header-section">
-            <h2><i class="fas fa-pills med-icon"></i>Gestion des Médicaments</h2>
-            <a href="produits?action=add" class="btn btn-primary">
-                <i class="fas fa-plus-circle"></i> Ajouter un médicament
+        <div class="navbar-buttons">
+            <a href="stock-report" class="btn btn-info">
+                <i class="fas fa-chart-bar"></i> Rapports
+            </a>
+            <a href="${pageContext.request.contextPath}/acceuil.jsp" class="btn btn-outline-primary">
+    <i class="fas fa-home"></i> Accueil
+</a>
+            <a href="logout" class="btn btn-outline-danger">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
             </a>
         </div>
-        
-        
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th><i class="fas fa-capsules"></i> Nom</th>
-                        <th><i class="fas fa-tag"></i> Prix</th>
-                        <th><i class="fas fa-tasks"></i> Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <c:forEach items="${produits}" var="p">
-                        <tr>
-                            <td>${p.nom}</td>
-                            <td class="price-cell">${p.prixVente} €</td>
-                            <td class="action-buttons">
-                                <a href="produits?action=edit&id=${p.id}" 
-                                   class="btn btn-warning btn-sm"
-                                   title="Modifier">
-                                    <i class="fas fa-edit"></i> Modifier
-                                </a>
-                                <a href="produits?action=delete&id=${p.id}" 
-                                   onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce médicament?')" 
-                                   		class="btn btn-danger btn-sm"
-                                   title="Supprimer">
-                                    <i class="fas fa-trash-alt"></i> Supprimer
-                                </a>
-                            </td>
-                        </tr>
-                    </c:forEach>
-                </tbody>
-            </table>
-        </div>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <div class="header-section">
+        <h2><i class="fas fa-pills med-icon"></i>Gestion des Médicaments</h2>
+        <a href="produits?action=add" class="btn btn-primary">
+            <i class="fas fa-plus-circle"></i> Ajouter un médicament
+        </a>
     </div>
     
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th><i class="fas fa-capsules"></i> Nom</th>
+                    <th><i class="fas fa-tag"></i> Prix</th>
+                    <th><i class="fas fa-tasks"></i> Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <c:forEach items="${produits}" var="p">
+                    <tr>
+                        <td>${p.nom}</td>
+                        <td class="price-cell">${p.prixVente} €</td>
+                        <td class="action-buttons">
+                            <a href="produits?action=edit&id=${p.id}" 
+                               class="btn btn-warning btn-sm"
+                               title="Modifier">
+                                <i class="fas fa-edit"></i> Modifier
+                            </a>
+                            <a href="produits?action=delete&id=${p.id}" 
+                               onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce médicament?')" 
+                                    class="btn btn-danger btn-sm"
+                               title="Supprimer">
+                                <i class="fas fa-trash-alt"></i> Supprimer
+                            </a>
+                        </tr>
+                    </tr>
+                </c:forEach>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
