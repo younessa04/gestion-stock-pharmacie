@@ -6,15 +6,15 @@ import java.sql.SQLException;
 
 public class ConnectDb {
 
-    private static final String URL = "jdbc:postgresql://aws-0-eu-west-2.pooler.supabase.com:6543/postgres";
-    private static final String USERNAME = "postgres.wndhyfijfzqqcoqeypev";
-    private static final String PASSWORD = "Pharmacy1234@#YM2";
+    private static final String URL = "jdbc:mysql://localhost:3306/pharmacy";
+    private static final String USERNAME = "root";
+    private static final String PASSWORD = ""; // Remplace par ton vrai mot de passe
 
     static {
         try {
-            Class.forName("org.postgresql.Driver");
+            Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
-            System.err.println("❌ Pilote PostgreSQL introuvable !");
+            System.err.println("❌ Pilote MySQL introuvable !");
             e.printStackTrace();
         }
     }
@@ -23,7 +23,7 @@ public class ConnectDb {
         try {
             return DriverManager.getConnection(URL, USERNAME, PASSWORD);
         } catch (SQLException e) {
-            System.err.println("❌ Échec de la connexion à la base de données");
+            System.err.println("❌ Échec de la connexion à la base de données MySQL");
             e.printStackTrace();
             return null;
         }

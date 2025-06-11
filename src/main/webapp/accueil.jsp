@@ -197,10 +197,10 @@
 					<a href="${pageContext.request.contextPath}/produits" class="nav-link">
 					  <i class="fas fa-pills"></i> Médicaments
 					</a>                    
-					<a href="#"><i class="fas fa-boxes"></i> Stock</a>
                     <a href="#"><i class="fas fa-users"></i> Clients</a>
-                    <a href="#"><i class="fas fa-file-invoice-dollar"></i> Ventes</a>
-                    <a href="#"><i class="fas fa-chart-line"></i> Rapports</a>
+                    <a href="${pageContext.request.contextPath}/achats"><i class="fas fa-file-invoice-dollar"></i> Achats</a>
+                    <a href="${pageContext.request.contextPath}/ventes"><i class="fas fa-file-invoice-dollar"></i> Ventes</a>
+                    <a href="rapport"><i class="fas fa-chart-line"></i> Rapports</a>
                     <a href="#"><i class="fas fa-cog"></i> Paramètres</a>
                 </div>
             </div>
@@ -381,8 +381,6 @@
             // Actualiser aussi au chargement de la page
             document.addEventListener('DOMContentLoaded', refreshAlerts);
         </script>
-    
-    
     
 </body>
 </html>
