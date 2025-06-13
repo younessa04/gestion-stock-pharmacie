@@ -249,17 +249,7 @@
                 </div>
             </div>
             
-            <div class="card-footer bg-light d-flex justify-content-between">
-                <small class="text-muted">
-                    Dernière mise à jour : <fmt:formatDate value="${now}" pattern="dd/MM/yyyy HH:mm:ss"/>
-                </small>
-                <form action="stock-report" method="post" class="d-inline">
-                    <input type="hidden" name="action" value="send-alerts">
-                    <button type="submit" class="btn btn-sm btn-success">
-                        <i class="fas fa-paper-plane me-1"></i> Envoyer par email
-                    </button>
-                </form>
-            </div>
+            
         </div>
     </div>
 </c:if>
@@ -277,7 +267,7 @@
                         <div class="stats-card">
                             <i class="fas fa-pills"></i>
                             <h3>Médicaments</h3>
-                            <div class="number">128</div>
+                            <div class="number">${totalStock}</div>
                             <small>Enregistrés</small>
                         </div>
                     </div>

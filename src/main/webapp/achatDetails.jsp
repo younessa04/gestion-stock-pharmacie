@@ -61,6 +61,7 @@
                                         <td>${ligne.quantite}</td>
                                         <td><fmt:formatNumber value="${ligne.prixAchat}" type="currency" currencySymbol="DH " minFractionDigits="2" maxFractionDigits="2"/></td>
                                         <td><fmt:formatNumber value="${ligne.quantite * ligne.prixAchat}" type="currency" currencySymbol="DH " minFractionDigits="2" maxFractionDigits="2"/></td>
+                                    	                                    		
                                     </tr>
                                 </c:forEach>
                             </tbody>

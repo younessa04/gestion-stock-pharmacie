@@ -21,6 +21,7 @@
     </style>
 </head>
 <body>
+    <jsp:include page="/WEB-INF/fragments/_sidebar.jsp" />
     <div class="container mt-4">
         <div class="report-header">
             <h2><i class="fas fa-chart-pie"></i> ${reportTitle}</h2>
@@ -75,6 +76,41 @@
                     </c:forEach>
                 </tbody>
             </table>
+            <div class="card-footer bg-light d-flex justify-content-between">
+<!--                 <small class="text-muted"> -->
+<%--                     Dernière mise à jour : <fmt:formatDate value="${now}" pattern="dd/MM/yyyy HH:mm:ss"/> --%>
+<!--                 </small> -->
+<c:if test="${not empty produits}">
+    <div class="mb-3">
+        <h5>Alerte à envoyer :</h5>
+        <ul>
+            <c:forEach items="${produits}" var="p">
+                <c:if test="${p.stockActuel <= p.stockMin}">
+                    <li>
+                        <strong>${p.nom}</strong> - Stock : ${p.stockActuel} 
+                        (min : ${p.stockMin}) - Fournisseur : ${p.nomFournisseur}
+                        <c:choose>
+                            <c:when test="${p.stockActuel == 0}">
+                                <span class="text-danger">[Rupture]</span>
+                            </c:when>
+                            <c:otherwise>
+                                <span class="text-warning">[Stock Faible]</span>
+                            </c:otherwise>
+                        </c:choose>
+                    </li>
+                </c:if>
+            </c:forEach>
+        </ul>
+    </div>
+</c:if>
+
+                <form action="stock-report" method="post" class="d-inline">
+                    <input type="hidden" name="action" value="send-alerts">
+                    <button type="submit" class="btn btn-sm btn-success">
+                        <i class="fas fa-paper-plane me-1"></i> Envoyer par email
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </body>

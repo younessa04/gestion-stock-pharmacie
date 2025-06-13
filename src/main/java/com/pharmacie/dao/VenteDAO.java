@@ -5,6 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -250,5 +252,21 @@ public class VenteDAO {
                 LOGGER.log(Level.SEVERE, "Error closing connection", e);
             }
         }
+    }
+    
+    public int getSalesCountToday() throws SQLException {
+        String sql = "SELECT COUNT(IdVente) FROM Vente WHERE DateVente = ?";
+        try (Connection conn = ConnectDb.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            // Obtenez la date du jour au format YYYY-MM-DD
+            String today = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
+            ps.setString(1, today);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        }
+        return 0;
     }
 }

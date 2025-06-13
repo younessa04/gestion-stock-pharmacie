@@ -1,96 +1,159 @@
 package com.pharmacie.servlets;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pharmacie.util.ConnectDb;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.*;
-import java.sql.*;
-import java.util.Map;
 
-@WebServlet("/rapport")
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+@WebServlet("/generate-stock-report")
 public class RapportServlet extends HttpServlet {
 
-    private static final String API_KEY = "YOUR_API_KEY_HERE";
-    private static final String ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + API_KEY;
+    private static final String API_KEY = "AIzaSyBU9R_lFYwpp7g7q4KTZ76qczsIcyTN6Wk";
+    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY;
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        StringBuilder data = new StringBuilder();
-
-        try (Connection conn = ConnectDb.getConnection()) {
-            Statement st = conn.createStatement();
-
-            // Produits
-            ResultSet rs = st.executeQuery("SELECT nom, stock_actuel, prix_vente FROM Produit LIMIT 5");
-            data.append("Produits:\n");
-            while (rs.next()) {
-                data.append("- ").append(rs.getString("nom"))
-                        .append(" (Stock: ").append(rs.getInt("stock_actuel"))
-                        .append(", Prix: ").append(rs.getDouble("prix_vente")).append(" €)\n");
-            }
-
-            // Ventes
-            rs = st.executeQuery("SELECT COUNT(*) AS total, SUM(montant_total) AS total_euros FROM Vente");
-            if (rs.next()) {
-                data.append("\nVentes:\n")
-                    .append("Total: ").append(rs.getInt("total")).append(" ventes\n")
-                    .append("Montant: ").append(rs.getDouble("total_euros")).append(" €\n");
-            }
-
-            // Achats
-            rs = st.executeQuery("SELECT COUNT(*) AS total, SUM(montant_total) AS total_euros FROM Achat");
-            if (rs.next()) {
-                data.append("\nAchats:\n")
-                    .append("Total: ").append(rs.getInt("total")).append(" achats\n")
-                    .append("Montant: ").append(rs.getDouble("total_euros")).append(" €\n");
-            }
-
-        } catch (SQLException e) {
-            throw new ServletException("Erreur SQL", e);
-        }
-
-        // Appel à l’API Gemini
+    public void init() throws ServletException {
         try {
-            String prompt = "Fais un rapport synthétique et professionnel sur la pharmacie avec ces données :\n" + data;
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new ServletException("Driver JDBC MySQL non trouvé", e);
+        }
+    }
 
-            String jsonInput = """
-            {
-              "contents": [
+    private Connection getConnection() throws SQLException {
+        return DriverManager.getConnection("jdbc:mysql://localhost:3306/pharmacy", "root", "");
+    }
+
+    private List<String> getAchats() throws SQLException {
+        List<String> achats = new ArrayList<>();
+        String sql = """
+            SELECT p.Nom, la.Quantite, a.date_achat FROM Achat a
+            JOIN LigneAchat la ON a.ID_Achat = la.ID_Achat
+            JOIN Produit p ON la.ID_Produit = p.ID_Produit
+            ORDER BY a.date_achat DESC LIMIT 10
+        """;
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                String ligne = rs.getString("Nom") + " - " + rs.getInt("Quantite") + " unités le " + rs.getDate("date_achat");
+                achats.add(ligne);
+            }
+        }
+        return achats;
+    }
+
+    private List<String> getVentes() throws SQLException {
+        List<String> ventes = new ArrayList<>();
+        String sql = """
+            SELECT p.Nom, lv.Quantite, v.datevente FROM Vente v
+            JOIN LigneVente lv ON v.ID_Vente = lv.ID_Vente
+            JOIN Produit p ON lv.ID_Produit = p.ID_Produit
+            ORDER BY v.datevente DESC LIMIT 10
+        """;
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                String ligne = rs.getString("Nom") + " - " + rs.getInt("Quantite") + " unités le " + rs.getDate("datevente");
+                ventes.add(ligne);
+            }
+        }
+        return ventes;
+    }
+    
+    private List<String> getProduits() throws SQLException {
+        List<String> ventes = new ArrayList<>();
+        String sql = """
+            SELECT * from produit
+        """;
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                String ligne = rs.getString("Nom")  + " - " +  + rs.getInt("stockactuel") + " - "  + rs.getInt("stockmin");
+                ventes.add(ligne);
+            }
+        }
+        return ventes;
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        response.setContentType("text/html;charset=UTF-8");
+        
+        try {
+        	List<String> produits = getProduits();
+            List<String> achats = getAchats();
+            List<String> ventes = getVentes();
+
+            String prompt = """
+                Voici des données de stock :
+                - Produit : %s
+                - Achats : %s
+                - Ventes : %s
+
+                Génère un rapport explicatif pour les donnees de cette pharmacie. la reponse doit sous forme de text simple    16px
+            """.formatted(String.join(", ", achats), String.join(", ", ventes), String.join(", ", produits));
+
+            String jsonBody = """
                 {
-                  "parts": [
+                  "contents": [
                     {
-                      "text": %s
+                      "parts": [
+                        {
+                          "text": "%s"
+                        }
+                      ]
                     }
                   ]
                 }
-              ]
-            }
-            """.formatted(new ObjectMapper().writeValueAsString(prompt));
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(ENDPOINT))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonInput))
-                    .build();
+            """.formatted(prompt.replace("\"", "\\\"")); // échappe les guillemets si besoin
 
             HttpClient client = HttpClient.newHttpClient();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpRequest httpRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(GEMINI_API_URL))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
 
-            Map<String, Object> jsonResponse = new ObjectMapper().readValue(response.body(), Map.class);
+            HttpResponse<String> httpResponse = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
-            // Extraire la réponse textuelle
-            String rapportTexte = ((Map)((Map)((java.util.List) jsonResponse.get("candidates")).get(0)).get("content")).get("parts").toString();
-            req.setAttribute("rapportTexte", rapportTexte);
+            String body = httpResponse.body();
+            String rapport = extractTextFromGeminiResponse(body);
 
+            request.setAttribute("rapport", rapport);
+            request.getRequestDispatcher("/rapportStock.jsp").forward(request, response);
+
+        } catch (SQLException e) {
+            response.getWriter().write("Erreur base de données : " + e.getMessage());
         } catch (Exception e) {
-            throw new ServletException("Erreur avec l’API Gemini", e);
+            response.getWriter().write("Erreur inattendue : " + e.getMessage());
+            e.printStackTrace(response.getWriter());
         }
+    }
 
-        // Transfert vers la JSP
-        req.getRequestDispatcher("/rapport.jsp").forward(req, resp);
+    private String extractTextFromGeminiResponse(String json) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root = mapper.readTree(json);
+        JsonNode candidates = root.get("candidates");
+        if (candidates != null && candidates.isArray() && candidates.size() > 0) {
+            JsonNode textNode = candidates.get(0).path("content").path("parts").get(0).path("text");
+            if (!textNode.isMissingNode()) {
+                return textNode.asText().replace("\n", "<br>");
+            }
+        }
+        return "Erreur d'analyse de la réponse Gemini.";
     }
 }

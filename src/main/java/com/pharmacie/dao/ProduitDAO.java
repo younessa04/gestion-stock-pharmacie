@@ -279,4 +279,32 @@ public class ProduitDAO {
             }
         }
     }
+    
+    
+ // Dans votre ProduitDAO.java
+    public int getTotalProduitsCount() throws SQLException {
+        String sql = "SELECT COUNT(IdProduit) FROM Produit";
+        try (Connection conn = ConnectDb.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    public int getTotalStockQuantity() throws SQLException {
+        String sql = "SELECT SUM(StockActuel) FROM Produit";
+        try (Connection conn = ConnectDb.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+    
+    
 }

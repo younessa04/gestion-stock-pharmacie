@@ -173,7 +173,7 @@
             <jsp:include page="/WEB-INF/fragments/_sidebar.jsp" />
 
             <!-- Main Content -->
-            <div class="col-md-10 col-lg-9 main-content offset-md-3 offset-lg-2">
+            <div class="container">
                 
                 <!-- Navbar pour les pages internes (similaire à medicament.jsp) -->
                 <nav class="navbar navbar-light bg-light mb-4">

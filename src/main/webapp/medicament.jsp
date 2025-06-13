@@ -157,7 +157,7 @@
             <jsp:include page="/WEB-INF/fragments/_sidebar.jsp" />
 
             <!-- Main Content -->
-            <div class="col-md-9 col-lg-10 main-content"> <%-- Pas besoin d'offset ici car body padding-left est global --%>
+            <div class="container"> <%-- Pas besoin d'offset ici car body padding-left est global --%>
                 
                 <!-- Navbar (qui était dans medicament.jsp, maintenant à l'intérieur du main-content) -->
                 <nav class="navbar navbar-light bg-light mb-4">
@@ -185,9 +185,6 @@
                         <div class="navbar-buttons">
                             <a href="${pageContext.request.contextPath}/stock-report" class="btn btn-info">
                                 <i class="fas fa-chart-bar"></i> Rapports
-                            </a>
-                            <a href="${pageContext.request.contextPath}/accueil" class="btn btn-outline-primary">
-                                <i class="fas fa-home"></i> Accueil
                             </a>
                             <a href="${pageContext.request.contextPath}/logout" class="btn btn-outline-danger">
                                 <i class="fas fa-sign-out-alt"></i> Déconnexion

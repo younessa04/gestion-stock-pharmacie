@@ -138,7 +138,9 @@
     </div>
     
     <div class="sidebar-menu">
-        <a href="${pageContext.request.contextPath}/accueil.jsp" class="nav-link"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
+        <a href="${pageContext.request.contextPath}/accueil.jsp" class="nav-link">
+        	<i class="fas fa-tachometer-alt"></i> Tableau de bord
+        </a>
         <a href="${pageContext.request.contextPath}/produits" class="nav-link">
           <i class="fas fa-pills"></i> Médicaments
         </a>
@@ -151,13 +153,16 @@
         <a href="${pageContext.request.contextPath}/ventes" class="nav-link">
             <i class="fas fa-file-invoice-dollar"></i> Ventes
         </a>
-        <a href="${pageContext.request.contextPath}/stock-report" class="nav-link"><i class="fas fa-boxes"></i> Stock</a>
-        <a href="#" class="nav-link"><i class="fas fa-users"></i> Clients</a>
-<a href="${pageContext.request.contextPath}/rapport" class="nav-link">
-    <i class="fas fa-chart-line"></i> Rapports
-</a>
+        <a href="${pageContext.request.contextPath}/stock-report" class="nav-link">
+        	<i class="fas fa-boxes"></i>Rapport de Stock
+        </a>
+		<a class="nav-link">
+		    <form action="generate-stock-report" method="POST">
+			    <i class="fas fa-chart-line"></i> 
+			    <button class="btn btn-primary" type="submit">Générer rapport stock</button>
+			</form>
 
-        <a href="#" class="nav-link"><i class="fas fa-cog"></i> Paramètres</a>
+		</a>
     </div>
 </div>
 
